@@ -40,15 +40,83 @@ namespace RyansLibrary.GameUtils
                 {'u', 1}, {'v', 4}, {'w', 4}, {'x', 8}, {'y', 4}, {'z', 10}
             };
 
+            string letters = this.letters;
 
+            int score = 0;
 
-            return 0;
+            if (CanMakeWord(word))
+            {
+                // First, loop through the list
+                // If the letter is in the rack, remove it from the rack
+                // Otherwise, because the word can be made, we can assume it is a wildcard and can be removed from the word
+                foreach (char letter in word)
+                {
+                    if (letters.Contains(letter))
+                    {
+                        letters = RemoveLetter(letters, letter);
+                    }
+                    else
+                    {
+                        word = RemoveLetter(word, letter);
+                    }
+                }
+
+                // Then loop through the remaining letters in the word and tally the score for each letter
+                foreach (char letter in word)
+                {
+                    score += scores[letter];
+                }
+
+                return score;
+            }
+            else
+            {
+                return 0;
+            }
         }
 
+        /// <summary>
+        /// Removes the first instance of the given letter from the rack
+        /// </summary>
+        /// <param name="letter">The letter to be removed</param>
+        /// <param name="rack">The rack to  remove the letters from</param>
+        public string RemoveLetter(string rack, char letter)
+        {
+            int index = rack.IndexOf(letter);
 
+            rack = (index < 0) ? rack : rack.Remove(index, 1);
+
+            return rack;
+        }
+
+        string[] GetWords()
+        {
+            string[] words = System.IO.File.ReadAllLines(file);
+
+            return words;
+        }
+
+        /// <summary>
+        /// Return the highest scoring word in the enable1 word list that can be created from the provided set of letters
+        /// </summary>
+        /// <returns></returns>
         public string HighestScore()
         {
-            return string.Empty;
+            int highestScore = 0;
+            string highestWord = "";
+
+            string[] words = GetWords();
+
+            foreach (string word in words)
+            {
+                if (Score(word) > highestScore)
+                {
+                    highestScore = Score(word);
+                    highestWord = word;
+                }
+            }
+
+            return highestWord;
         }
 
         /// <summary>
@@ -59,7 +127,7 @@ namespace RyansLibrary.GameUtils
         {
             string longest = "";
 
-            string[] words = System.IO.File.ReadAllLines(file);
+            string[] words = GetWords();
 
             // Loop through the word list and check if the word can be made
             foreach (string word in words)
@@ -76,7 +144,7 @@ namespace RyansLibrary.GameUtils
         /// <summary>
         /// Checks to see if the word can be made with the letters provided
         /// </summary>
-        /// <param name="word"></param>
+        /// <param name="word">The word to check</param>
         /// <returns></returns>
         public bool CanMakeWord(string word)
         {
@@ -84,20 +152,15 @@ namespace RyansLibrary.GameUtils
             
             char[] wordArray = word.ToCharArray();
 
-            for (int i = 0; i < wordArray.Length; i++)
+            foreach (char letter in wordArray)
             {
-                if (letters.Contains(wordArray[i]))
+                if (letters.Contains(letter))
                 {
-                    // remove the letter at position i in wordArray
-                    int index = letters.IndexOf(wordArray[i]);
-
-                    letters = (index < 0) ? letters : letters.Remove(index, 1);
+                    letters = RemoveLetter(letters, letter);
                 }
                 else if (letters.Contains('?'))
                 {
-                    int index = letters.IndexOf('?');
-
-                    letters = (index < 0) ? letters : letters.Remove(index, 1);
+                    letters = RemoveLetter(letters, '?');
                 }
                 else
                 {
